@@ -38,6 +38,7 @@ func (d *accountInfoDataSource) Metadata(_ context.Context, req datasource.Metad
 
 func (d *accountInfoDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Retrieve account info.",
 		Attributes: map[string]schema.Attribute{
 			"email": schema.StringAttribute{
 				Computed:            true,
@@ -51,6 +52,9 @@ func (d *accountInfoDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 				Computed:            true,
 				MarkdownDescription: "The RFC 3339 representation of the time that the account was created. This can be used in conjunction with the [formatdate](https://developer.hashicorp.com/terraform/language/functions/formatdate) function.",
 			},
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
@@ -59,6 +63,7 @@ type accountInfoDataSourceModel struct {
 	Email   types.String `tfsdk:"email"`
 	Name    types.String `tfsdk:"name"`
 	Created types.String `tfsdk:"created"`
+	ID      types.String `tfsdk:"id"`
 }
 
 func (d *accountInfoDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -75,6 +80,7 @@ func (d *accountInfoDataSource) Read(ctx context.Context, req datasource.ReadReq
 		Email:   types.StringValue(accountInfo.Email),
 		Name:    types.StringValue(accountInfo.Name),
 		Created: types.StringValue(accountInfo.Created.Iso8601Time),
+		ID:      types.StringValue("_"),
 	}
 
 	// Set state
