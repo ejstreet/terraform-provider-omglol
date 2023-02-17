@@ -25,3 +25,29 @@ output settings {
   value = omglol_account_settings.this
 }
 
+
+resource "omglol_dns_record" "test" {
+  type = "TXT"
+  address = "terraform"
+  name = "deployed"
+  data = "terraform=true"
+  ttl = 300
+}
+
+output "record" {
+  value = omglol_dns_record.test
+}
+
+resource omglol_dns_record mx {
+  type = "MX"
+  address = "terraform"
+  name = "mail"
+  data = "mx_data"
+  priority = 20
+  ttl = 60
+}
+
+output mx {
+  value = omglol_dns_record.mx
+}
+

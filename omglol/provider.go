@@ -38,16 +38,16 @@ func (p *omglolProvider) Schema(_ context.Context, _ provider.SchemaRequest, res
 		MarkdownDescription: "Interact with omg.lol.",
 		Attributes: map[string]schema.Attribute{
 			"api_host": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
 				MarkdownDescription: "This variable is not required, and only useful for development purposes. Default value is `https://api.omg.lol`. Pass this variable in the provider configuration, or alternatively set the `OMGLOL_API_HOST` environment variable.",
 			},
 			"user_email": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
 				MarkdownDescription: "Pass this variable in the provider configuration, or alternatively set the `OMGLOL_USER_EMAIL` environment variable.",
 			},
 			"api_key": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+				Optional:            true,
+				Sensitive:           true,
 				MarkdownDescription: "Pass this variable in the provider configuration, or alternatively set the `OMGLOL_API_KEY` environment variable. As this is a sensitive variable, it is recommended to set it as an environment variable.",
 			},
 		},
@@ -191,5 +191,6 @@ func (p *omglolProvider) DataSources(_ context.Context) []func() datasource.Data
 func (p *omglolProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewAccountSettingsResource,
+		NewDNSRecordResource,
 	}
 }
