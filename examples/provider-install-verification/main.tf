@@ -12,13 +12,13 @@ provider "omglol" {
 
 data "omglol_account_info" "this" {}
 
+output info {
+  value = data.omglol_account_info.this
+}
+
 resource "omglol_account_settings" "this" {
   communication = "email_ok"
   date_format = "iso_8601"
-}
-
-output info {
-  value = data.omglol_account_info.this
 }
 
 output settings {

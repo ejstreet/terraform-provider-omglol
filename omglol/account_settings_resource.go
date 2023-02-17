@@ -2,7 +2,6 @@ package omglol
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/ejstreet/omglol-client-go/omglol"
@@ -11,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -46,17 +44,17 @@ func (r *accountSettingsResource) Metadata(_ context.Context, req resource.Metad
 // Schema defines the schema for the resource.
 func (r *accountSettingsResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manage omg.lol account settings through terraform. This resource will update the exisiting account settings, it cannot be imported or destroyed. Specifying more than one of this resource will have unpredictable results.",
+		MarkdownDescription: "Manage omg.lol account settings through terraform. This resource will update the exisiting account settings - it cannot be imported or destroyed, only removed from state. Specifying more than one of this resource will have unpredictable results.",
 		Attributes: map[string]schema.Attribute{
 			"communication": schema.StringAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "Commuinication preferences. Valid values are `email_ok` and `email_not_ok`",
 				Validators: []validator.String{
 					stringvalidator.OneOf("email_ok", "email_not_ok"),
 				},
 			},
 			"date_format": schema.StringAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "Date preferences. Valid values are: `iso_8601` for *YYYY-MM-DD*, `dmy` for *DD-MM-YYYY*, and `mdy` for *MM-DD-YYYY*.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("iso_8601", "dmy", "mdy"),
@@ -82,15 +80,11 @@ func (r *accountSettingsResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	tflog.Info(ctx, plan.Communication.ValueString())
-
 	// Generate API request body from plan, and compute owner data
 	settings := map[string]string{
 		"communication": plan.Communication.ValueString(),
 		"date_format":   plan.DateFormat.ValueString(),
 	}
-
-	tflog.Info(ctx, fmt.Sprintf("%+v", settings))
 
 	// Set account settings
 	err := r.client.SetAccountSettings(settings)
@@ -103,8 +97,7 @@ func (r *accountSettingsResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
-
-	tflog.Info(ctx, plan.Communication.ValueString())
+	plan.ID = types.StringValue("_")
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -157,15 +150,11 @@ func (r *accountSettingsResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	tflog.Info(ctx, plan.Communication.ValueString())
-
 	// Generate API request body from plan, and compute owner data
 	settings := map[string]string{
 		"communication": plan.Communication.ValueString(),
 		"date_format":   plan.DateFormat.ValueString(),
 	}
-
-	tflog.Info(ctx, fmt.Sprintf("%+v", settings))
 
 	// Set account settings
 	err := r.client.SetAccountSettings(settings)
@@ -178,8 +167,7 @@ func (r *accountSettingsResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
-
-	tflog.Info(ctx, plan.Communication.ValueString())
+	plan.ID = types.StringValue("_")
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
