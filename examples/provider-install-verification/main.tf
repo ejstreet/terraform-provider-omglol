@@ -29,7 +29,7 @@ output settings {
 resource "omglol_dns_record" "test" {
   type = "TXT"
   address = "terraform"
-  name = "deployed"
+  name = "deploy"
   data = "terraform=true"
   ttl = 300
 }
@@ -38,7 +38,7 @@ output "record" {
   value = omglol_dns_record.test
 }
 
-resource omglol_dns_record mx {
+resource omglol_dns_record mx2 {
   type = "MX"
   address = "terraform"
   name = "mail"
@@ -48,6 +48,16 @@ resource omglol_dns_record mx {
 }
 
 output mx {
-  value = omglol_dns_record.mx
+  value = omglol_dns_record.mx2
 }
 
+resource omglol_purl test {
+  address = "terraform"
+  name = "source"
+  listed = true
+  url = "https://github.com/ejstreet/terraform-provider-omglol"
+}
+
+output purl {
+  value = omglol_purl.test
+}

@@ -2,11 +2,11 @@ package omglol
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/ejstreet/omglol-client-go/omglol"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -139,7 +138,7 @@ func (r *dnsRecordResource) Create(ctx context.Context, req resource.CreateReque
 	// Generate API request body from plan, and compute owner data
 
 	var entry *omglol.DNSEntry
-	if !plan.Priority.IsNull() {
+	if plan.Type.ValueString() == "MX" {
 		entry = omglol.NewDNSEntry(plan.Type.ValueString(), plan.Name.ValueString(), plan.Data.ValueString(), int(plan.TTL.ValueInt64()), int(plan.Priority.ValueInt64()))
 	} else {
 		entry = omglol.NewDNSEntry(plan.Type.ValueString(), plan.Name.ValueString(), plan.Data.ValueString(), int(plan.TTL.ValueInt64()))
@@ -182,8 +181,6 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 		"ID": int(state.ID.ValueInt64()),
 	}
 
-	tflog.Warn(ctx, state.Address.ValueString())
-
 	// Get refreshed DNS record from omg.lol
 	record, err := r.client.FilterDNSRecord(state.Address.ValueString(), filter)
 	if err != nil {
@@ -206,10 +203,15 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 	state.Name = types.StringValue(name)
 	state.FQDN = types.StringValue(*record.Name + ".omg.lol")
 	state.Data = types.StringValue(*record.Data)
-	state.Priority = types.Int64Null()
 	state.TTL = types.Int64Value(int64(*record.TTL))
 	state.CreatedAt = types.StringValue(*record.CreatedAt)
 	state.UpdatedAt = types.StringValue(*record.UpdatedAt)
+
+	if *record.Type == "MX" {
+		state.Priority = types.Int64Value(int64(*record.Priority))
+	} else {
+		state.Priority = types.Int64Null()
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -221,39 +223,7 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *dnsRecordResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// // Retrieve values from plan
-	// var plan dnsRecordResourceModel
-	// diags := req.Plan.Get(ctx, &plan)
-	// resp.Diagnostics.Append(diags...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
-
-	// // Generate API request body from plan, and compute owner data
-	// settings := map[string]string{
-	// 	"communication": plan.Communication.ValueString(),
-	// 	"date_format":   plan.DateFormat.ValueString(),
-	// }
-
-	// // Set account settings
-	// err := r.client.SetDNSRecord(settings)
-	// if err != nil {
-	// 	resp.Diagnostics.AddError(
-	// 		"Error updating settings",
-	// 		"Could not update settings, unexpected error: "+err.Error(),
-	// 	)
-	// 	return
-	// }
-
-	// plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
-	// plan.ID = types.StringValue("_")
-
-	// // Set state to fully populated data
-	// diags = resp.State.Set(ctx, plan)
-	// resp.Diagnostics.Append(diags...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
+	// Unused, replace is always forced
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -288,5 +258,46 @@ func (r *dnsRecordResource) Configure(_ context.Context, req resource.ConfigureR
 
 func (r *dnsRecordResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	var state dnsRecordResourceModel
+
+	parts := strings.Split(req.ID, "_")
+	state.Address = types.StringValue(parts[0])
+	id, err := strconv.Atoi(parts[1])
+	state.ID = types.Int64Value(int64(id))
+
+	filter := map[string]any{
+		"ID": int(state.ID.ValueInt64()),
+	}
+
+	// Get refreshed DNS record from omg.lol
+	record, err := r.client.FilterDNSRecord(state.Address.ValueString(), filter)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading DNS Record",
+			"Could not read DNS record: "+err.Error(),
+		)
+		return
+	}
+
+	// Overwrite record with refreshed state
+	state.Type = types.StringValue(*record.Type)
+	state.Name = types.StringValue(*record.Name)
+	state.FQDN = types.StringValue(*record.Name + ".omg.lol")
+	state.Data = types.StringValue(*record.Data)
+	state.TTL = types.Int64Value(int64(*record.TTL))
+	state.CreatedAt = types.StringValue(*record.CreatedAt)
+	state.UpdatedAt = types.StringValue(*record.UpdatedAt)
+
+	if *record.Type == "MX" {
+		state.Priority = types.Int64Value(int64(*record.Priority))
+	} else {
+		state.Priority = types.Int64Null()
+	}
+
+	// Set refreshed state
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

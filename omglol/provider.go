@@ -192,5 +192,6 @@ func (p *omglolProvider) Resources(_ context.Context) []func() resource.Resource
 	return []func() resource.Resource{
 		NewAccountSettingsResource,
 		NewDNSRecordResource,
+		NewPURLResource,
 	}
 }

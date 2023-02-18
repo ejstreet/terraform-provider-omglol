@@ -3,7 +3,7 @@ module terraform-provider-omglol
 go 1.18
 
 require (
-	github.com/ejstreet/omglol-client-go v0.0.2
+	github.com/ejstreet/omglol-client-go v0.1.0
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 	github.com/hashicorp/terraform-plugin-framework v1.1.2-0.20230210212753-757f96584fde
 	github.com/hashicorp/terraform-plugin-framework-validators v0.10.0
