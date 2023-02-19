@@ -1,0 +1,27 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+An example `TXT` record
+{{ tffile "examples/resources/dns_record/txt_record.tf" }}
+
+An example `MX` record
+{{ tffile "examples/resources/dns_record/mx_record.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+To import an existing record into state, use the `address` followed by the `ID` separated by a `_`, e.g.
+```bash
+terraform import omglol_dns_record.txt example_12345678
+``` 
+To get the ID, you can use the the [DNS Records data source](../data-sources/dns_records.html), or use the [list records](https://api.omg.lol/#token-get-dns-retrieve-dns-records-for-an-address) method with the API.

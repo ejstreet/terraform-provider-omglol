@@ -16,6 +16,14 @@ output info {
   value = data.omglol_account_info.this
 }
 
+data "omglol_dns_records" "tf" {
+  address = "terraform"
+}
+
+output records {
+  value = data.omglol_dns_records.tf
+}
+
 resource "omglol_account_settings" "this" {
   communication = "email_ok"
   date_format = "iso_8601"
@@ -29,7 +37,7 @@ output settings {
 resource "omglol_dns_record" "test" {
   type = "TXT"
   address = "terraform"
-  name = "deploy"
+  name = "@"
   data = "terraform=true"
   ttl = 300
 }

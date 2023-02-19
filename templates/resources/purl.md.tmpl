@@ -1,0 +1,23 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+An example Persistent URL
+{{ tffile "examples/resources/purl/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+To import an existing PURL into state, use the `address` followed by the `name` separated by a `_`, e.g.
+```bash
+terraform import omglol_purl.example example_rickroll
+``` 

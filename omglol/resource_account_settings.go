@@ -28,7 +28,7 @@ type accountSettingsResource struct {
 	client *omglol.Client
 }
 
-// orderResourceModel maps the resource schema data.
+// accountSettingsResourceModel maps the resource schema data.
 type accountSettingsResourceModel struct {
 	Communication types.String `tfsdk:"communication"`
 	DateFormat    types.String `tfsdk:"date_format"`
@@ -44,7 +44,6 @@ func (r *accountSettingsResource) Metadata(_ context.Context, req resource.Metad
 // Schema defines the schema for the resource.
 func (r *accountSettingsResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manage omg.lol account settings through terraform. This resource will update the exisiting account settings - it cannot be imported or destroyed, only removed from state. Specifying more than one of this resource will have unpredictable results.",
 		Attributes: map[string]schema.Attribute{
 			"communication": schema.StringAttribute{
 				Required:            true,

@@ -30,7 +30,7 @@ type pURLResource struct {
 	client *omglol.Client
 }
 
-// orderResourceModel maps the resource schema data.
+// pURLResourceModel maps the resource schema data.
 type pURLResourceModel struct {
 	Name      types.String `tfsdk:"name"`
 	Address   types.String `tfsdk:"address"`
@@ -214,7 +214,7 @@ func (r *pURLResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	// Delete existing order
+	// Delete existing PURL
 	err := r.client.DeletePersistentURL(state.Address.ValueString(), state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -244,7 +244,6 @@ func (r *pURLResource) ImportState(ctx context.Context, req resource.ImportState
 	parts := strings.Split(req.ID, "_")
 	state.Address = types.StringValue(parts[0])
 	state.Name = types.StringValue(parts[1])
-	
 
 	// Get refreshed pURL from omg.lol
 	purl, err := r.client.GetPersistentURL(state.Address.ValueString(), state.Name.ValueString())
@@ -257,7 +256,7 @@ func (r *pURLResource) ImportState(ctx context.Context, req resource.ImportState
 	}
 
 	// Overwrite purl with refreshed state
-	
+
 	state.Name = types.StringValue(purl.Name)
 	state.URL = types.StringValue(purl.URL)
 	state.Counter = types.Int64Value(int64(*purl.Counter))

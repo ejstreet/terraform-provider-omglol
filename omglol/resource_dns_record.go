@@ -33,7 +33,7 @@ type dnsRecordResource struct {
 	client *omglol.Client
 }
 
-// orderResourceModel maps the resource schema data.
+// dnsrecordResourceModel maps the resource schema data.
 type dnsRecordResourceModel struct {
 	ID        types.Int64  `tfsdk:"id"`
 	Type      types.String `tfsdk:"type"`
@@ -191,21 +191,22 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	n := *record.Name
-	lastIndex := strings.LastIndex(n, ".")
-	address := n[lastIndex+1:]
-	name := n[:lastIndex]
-
 	// Overwrite record with refreshed state
 	state.ID = types.Int64Value(int64(*record.ID))
 	state.Type = types.StringValue(*record.Type)
-	state.Address = types.StringValue(address)
-	state.Name = types.StringValue(name)
 	state.FQDN = types.StringValue(*record.Name + ".omg.lol")
 	state.Data = types.StringValue(*record.Data)
 	state.TTL = types.Int64Value(int64(*record.TTL))
 	state.CreatedAt = types.StringValue(*record.CreatedAt)
 	state.UpdatedAt = types.StringValue(*record.UpdatedAt)
+
+	if strings.Contains(*record.Name, ".") {
+		state.Name = types.StringValue(strings.Split(*record.Name, ".")[0])
+		state.Address = types.StringValue(strings.Split(*record.Name, ".")[1])
+	} else {
+		state.Address = state.Name
+		state.Name = types.StringValue("@")
+	}
 
 	if *record.Type == "MX" {
 		state.Priority = types.Int64Value(int64(*record.Priority))
@@ -236,7 +237,7 @@ func (r *dnsRecordResource) Delete(ctx context.Context, req resource.DeleteReque
 		return
 	}
 
-	// Delete existing order
+	// Delete existing dns record
 	err := r.client.DeleteDNSRecord(state.Address.ValueString(), int(state.ID.ValueInt64()))
 	if err != nil {
 		resp.Diagnostics.AddError(
