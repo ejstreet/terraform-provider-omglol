@@ -35,8 +35,7 @@ func (p *omglolProvider) Metadata(_ context.Context, _ provider.MetadataRequest,
 // Schema defines the provider-level schema for configuration data.
 func (p *omglolProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: 
-		"Interact with omg.lol.",
+		MarkdownDescription: "Interact with omg.lol.",
 		Attributes: map[string]schema.Attribute{
 			"api_host": schema.StringAttribute{
 				Optional:            true,
@@ -186,6 +185,7 @@ func (p *omglolProvider) DataSources(_ context.Context) []func() datasource.Data
 	return []func() datasource.DataSource{
 		NewAccountInfoDataSource,
 		NewDnsRecordsDataSource,
+		NewPURLsDataSource,
 	}
 }
 

@@ -2,6 +2,7 @@ package omglol
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -76,7 +78,7 @@ func (r *dnsRecordResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The prefix to attach before the address. Enter `@` to use the top level.",
+				MarkdownDescription: "The prefix to attach before the address. Enter `@` to use the apex.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -136,20 +138,19 @@ func (r *dnsRecordResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Generate API request body from plan, and compute owner data
-
 	var entry *omglol.DNSEntry
 	if plan.Type.ValueString() == "MX" {
-		entry = omglol.NewDNSEntry(plan.Type.ValueString(), plan.Name.ValueString(), plan.Data.ValueString(), int(plan.TTL.ValueInt64()), int(plan.Priority.ValueInt64()))
+		entry = omglol.NewDNSEntry(plan.Type.ValueString(), plan.Name.ValueString(), plan.Data.ValueString(), plan.TTL.ValueInt64(), plan.Priority.ValueInt64())
 	} else {
-		entry = omglol.NewDNSEntry(plan.Type.ValueString(), plan.Name.ValueString(), plan.Data.ValueString(), int(plan.TTL.ValueInt64()))
+		entry = omglol.NewDNSEntry(plan.Type.ValueString(), plan.Name.ValueString(), plan.Data.ValueString(), plan.TTL.ValueInt64())
 	}
 
-	// Set account settings
+	// Create DNS Record
 	record, err := r.client.CreateDNSRecord(plan.Address.ValueString(), *entry)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating settings",
-			"Could not update settings, unexpected error: "+err.Error(),
+			"Error Creating DNS Record",
+			"Could not create DNS record, unexpected error: "+err.Error(),
 		)
 		return
 	}
@@ -157,7 +158,7 @@ func (r *dnsRecordResource) Create(ctx context.Context, req resource.CreateReque
 	plan.FQDN = types.StringValue(*record.Name + ".omg.lol")
 	plan.CreatedAt = types.StringValue(*record.CreatedAt)
 	plan.UpdatedAt = types.StringValue(*record.UpdatedAt)
-	plan.ID = types.Int64Value(int64(*record.ID))
+	plan.ID = types.Int64Value(*record.ID)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -178,10 +179,11 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	filter := map[string]any{
-		"ID": int(state.ID.ValueInt64()),
+		"ID": state.ID.ValueInt64(),
 	}
 
 	// Get refreshed DNS record from omg.lol
+	tflog.Debug(ctx, fmt.Sprintf("Reading record from address: %s, with ID: %d", state.Address.ValueString(), state.ID.ValueInt64()))
 	record, err := r.client.FilterDNSRecord(state.Address.ValueString(), filter)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -192,11 +194,11 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	// Overwrite record with refreshed state
-	state.ID = types.Int64Value(int64(*record.ID))
+	state.ID = types.Int64Value(*record.ID)
 	state.Type = types.StringValue(*record.Type)
 	state.FQDN = types.StringValue(*record.Name + ".omg.lol")
 	state.Data = types.StringValue(*record.Data)
-	state.TTL = types.Int64Value(int64(*record.TTL))
+	state.TTL = types.Int64Value(*record.TTL)
 	state.CreatedAt = types.StringValue(*record.CreatedAt)
 	state.UpdatedAt = types.StringValue(*record.UpdatedAt)
 
@@ -204,12 +206,12 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 		state.Name = types.StringValue(strings.Split(*record.Name, ".")[0])
 		state.Address = types.StringValue(strings.Split(*record.Name, ".")[1])
 	} else {
-		state.Address = state.Name
+		state.Address = types.StringValue(*record.Name)
 		state.Name = types.StringValue("@")
 	}
 
 	if *record.Type == "MX" {
-		state.Priority = types.Int64Value(int64(*record.Priority))
+		state.Priority = types.Int64Value(*record.Priority)
 	} else {
 		state.Priority = types.Int64Null()
 	}
@@ -238,7 +240,7 @@ func (r *dnsRecordResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 
 	// Delete existing dns record
-	err := r.client.DeleteDNSRecord(state.Address.ValueString(), int(state.ID.ValueInt64()))
+	err := r.client.DeleteDNSRecord(state.Address.ValueString(), state.ID.ValueInt64())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting DNS Record",
@@ -267,7 +269,7 @@ func (r *dnsRecordResource) ImportState(ctx context.Context, req resource.Import
 	state.ID = types.Int64Value(int64(id))
 
 	filter := map[string]any{
-		"ID": int(state.ID.ValueInt64()),
+		"ID": state.ID.ValueInt64(),
 	}
 
 	// Get refreshed DNS record from omg.lol
@@ -285,12 +287,12 @@ func (r *dnsRecordResource) ImportState(ctx context.Context, req resource.Import
 	state.Name = types.StringValue(*record.Name)
 	state.FQDN = types.StringValue(*record.Name + ".omg.lol")
 	state.Data = types.StringValue(*record.Data)
-	state.TTL = types.Int64Value(int64(*record.TTL))
+	state.TTL = types.Int64Value(*record.TTL)
 	state.CreatedAt = types.StringValue(*record.CreatedAt)
 	state.UpdatedAt = types.StringValue(*record.UpdatedAt)
 
 	if *record.Type == "MX" {
-		state.Priority = types.Int64Value(int64(*record.Priority))
+		state.Priority = types.Int64Value(*record.Priority)
 	} else {
 		state.Priority = types.Int64Null()
 	}

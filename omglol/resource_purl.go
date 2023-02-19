@@ -103,12 +103,12 @@ func (r *pURLResource) Create(ctx context.Context, req resource.CreateRequest, r
 	// Generate API request body from plan
 	purl := omglol.NewPersistentURL(plan.Name.ValueString(), plan.URL.ValueString(), plan.Listed.ValueBool())
 
-	// Set account settings
+	// Create Persistent URL
 	err := r.client.CreatePersistentURL(plan.Address.ValueString(), *purl)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating settings",
-			"Could not update settings, unexpected error: "+err.Error(),
+			"Error Creating Persistent URL",
+			"Could not create persistent URL, unexpected error: "+err.Error(),
 		)
 		return
 	}
@@ -135,7 +135,7 @@ func (r *pURLResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	// Get refreshed pURL from omg.lol
+	// Get refreshed PURL from omg.lol
 	purl, err := r.client.GetPersistentURL(state.Address.ValueString(), state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -176,8 +176,8 @@ func (r *pURLResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	err := r.client.CreatePersistentURL(plan.Address.ValueString(), *purl)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating settings",
-			"Could not update settings, unexpected error: "+err.Error(),
+			"Error Updating Persistent URL",
+			"Could not update persistent URL, unexpected error: "+err.Error(),
 		)
 		return
 	}

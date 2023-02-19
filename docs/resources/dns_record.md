@@ -22,6 +22,17 @@ resource omglol_dns_record txt {
 }
 ```
 
+An example record using the apex name
+```terraform
+resource omglol_dns_record apex {
+  type = "TXT"
+  address = "example"
+  name = "@"
+  data = "terraform=true"
+  ttl = 300
+}
+```
+
 An example `MX` record
 ```terraform
 resource omglol_dns_record mx {

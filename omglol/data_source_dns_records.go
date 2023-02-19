@@ -56,7 +56,7 @@ func (d *dnsRecordsDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 						},
 						"name": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The prefix attached before the address. `@` represents the top level.",
+							MarkdownDescription: "The prefix attached before the address. `@` represents the apex.",
 						},
 						"data": schema.StringAttribute{
 							Computed:            true,

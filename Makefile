@@ -14,3 +14,7 @@ testacc:
 
 doc:
 	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name omglol
+
+upgrade-client:
+	GOPROXY=https://proxy.golang.org GO111MODULE=on go get github.com/ejstreet/omglol-client-go@latest
+	go mod tidy
