@@ -10,7 +10,8 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.8.0
 )
 
-replace github.com/ejstreet/omglol-client-go => ../omglol-client-go
+// For development with a local copy of the client, uncomment the following line
+// replace github.com/ejstreet/omglol-client-go => ../omglol-client-go
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
