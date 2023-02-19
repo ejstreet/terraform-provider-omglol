@@ -36,5 +36,5 @@ Read-Only:
 - `counter` (Number) The number of time a PURL has been accessed.
 - `id` (String) Unique ID of the PURL. Can be used for imports.
 - `listed` (Boolean) Returns `true` if listed on your `address`.url.lol page.
-- `name` (String) The prefix attached before the address. `@` represents the top level.
+- `name` (String) The name of the PURL. The name field is how you will access your designated URL.
 - `url` (String) The url that is pointed to.

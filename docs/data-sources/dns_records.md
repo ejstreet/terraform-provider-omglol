@@ -37,7 +37,7 @@ Read-Only:
 - `data` (String) The data entered into the record.
 - `fqdn` (String) The fully qualified domain name of the record. Made by combining DNS name, address, and omg.lol top-level.
 - `id` (Number)
-- `name` (String) The prefix attached before the address. `@` represents the top level.
+- `name` (String) The prefix attached before the address. `@` represents the apex.
 - `priority` (Number) The priority of the record. Only applies to MX records.
 - `ttl` (Number) The Time-To-Live (TTL) of the record.
 - `type` (String) The record type.

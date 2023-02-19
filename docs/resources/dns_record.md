@@ -52,7 +52,7 @@ resource omglol_dns_record mx {
 
 - `address` (String) Your omg.lol address to create the record for.
 - `data` (String) The data to enter into the record.
-- `name` (String) The prefix to attach before the address. Enter `@` to use the top level.
+- `name` (String) The prefix to attach before the address. Enter `@` to use the apex.
 - `ttl` (Number) The Time-To-Live (TTL) of the record.
 - `type` (String) The record type. Valid values are `A`, `AAAA`, `CAA`, `CNAME`, `TXT`, `MX`, `NS`, and `SRV`.
 

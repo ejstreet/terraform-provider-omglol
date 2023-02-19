@@ -1,4 +1,4 @@
---
+---
 page_title: "Provider: omglol"
 description: |-
   The omg.lol provider provides utilities for working with resources in omg.lol.

@@ -35,7 +35,7 @@ func (p *omglolProvider) Metadata(_ context.Context, _ provider.MetadataRequest,
 // Schema defines the provider-level schema for configuration data.
 func (p *omglolProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Interact with omg.lol.",
+		MarkdownDescription: "The omg.lol provider provides utilities for working with resources in omg.lol.",
 		Attributes: map[string]schema.Attribute{
 			"api_host": schema.StringAttribute{
 				Optional:            true,

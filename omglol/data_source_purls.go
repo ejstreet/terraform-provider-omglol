@@ -50,7 +50,7 @@ func (d *pURLsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Required:            true,
+							Computed:            true,
 							MarkdownDescription: "The name of the PURL. The name field is how you will access your designated URL.",
 						},
 						"url": schema.StringAttribute{
