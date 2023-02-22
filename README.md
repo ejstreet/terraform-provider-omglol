@@ -14,7 +14,7 @@ terraform {
 
 provider omglol {
   api_key = "<omg.lol API key>" // Alternatively set the OMGLOL_API_KEY env variable
-  email = "<email address>" // Alternatively set the OMGLOL_USER_EMAIL env variable
+  user_email = "<email address>" // Alternatively set the OMGLOL_USER_EMAIL env variable
 }
 ```
 
