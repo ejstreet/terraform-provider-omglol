@@ -138,6 +138,10 @@ func (r *pURLResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	// Get refreshed PURL from omg.lol
 	purl, err := r.client.GetPersistentURL(state.Address.ValueString(), state.Name.ValueString())
 	if err != nil {
+		if isNotFoundError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error reading Persistent URL",
 			"Could not read persistent URL: "+err.Error(),

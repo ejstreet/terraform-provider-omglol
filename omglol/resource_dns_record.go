@@ -186,11 +186,17 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 	tflog.Debug(ctx, fmt.Sprintf("Reading record from address: %s, with ID: %d", state.Address.ValueString(), state.ID.ValueInt64()))
 	record, err := r.client.FilterDNSRecord(state.Address.ValueString(), filter)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading DNS Record",
-			"Could not read DNS record: "+err.Error(),
-		)
-		return
+		// If resource can't be found, it has been deleted, remove it from state
+		if isNotFoundError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		} else {
+			resp.Diagnostics.AddError(
+				"Error reading DNS Record",
+				"Could not read DNS record: "+err.Error(),
+			)
+			return
+		}
 	}
 
 	// Overwrite record with refreshed state
