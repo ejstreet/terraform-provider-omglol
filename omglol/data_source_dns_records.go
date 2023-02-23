@@ -86,6 +86,9 @@ func (d *dnsRecordsDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 					},
 				},
 			},
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
@@ -104,6 +107,7 @@ type dnsRecordDataSourceModel struct {
 
 type dnsRecordsDataSourceModel struct {
 	Address types.String               `tfsdk:"address"`
+	ID      types.String               `tfsdk:"id"`
 	Records []dnsRecordDataSourceModel `tfsdk:"records"`
 }
 
@@ -123,26 +127,28 @@ func (d *dnsRecordsDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
+	state.ID = types.StringValue("_")
+
 	for _, record := range *dnsRecords {
 
 		r := dnsRecordDataSourceModel{
-			ID:        types.Int64Value(int64(*record.ID)),
-			Type:      types.StringValue(*record.Type),
-			Data:      types.StringValue(*record.Data),
-			TTL:       types.Int64Value(int64(*record.TTL)),
-			FQDN:      types.StringValue((*record.Name + ".omg.lol")),
-			CreatedAt: types.StringValue(*record.CreatedAt),
-			UpdatedAt: types.StringValue(*record.UpdatedAt),
+			ID:        types.Int64Value(record.ID),
+			Type:      types.StringValue(record.Type),
+			Data:      types.StringValue(record.Data),
+			TTL:       types.Int64Value(record.TTL),
+			FQDN:      types.StringValue(record.Name + ".omg.lol"),
+			CreatedAt: types.StringValue(record.CreatedAt),
+			UpdatedAt: types.StringValue(record.UpdatedAt),
 		}
 
-		if strings.Contains(*record.Name, ".") {
-			r.Name = types.StringValue(strings.Split(*record.Name, ".")[0])
+		if strings.Contains(record.Name, ".") {
+			r.Name = types.StringValue(strings.Split(record.Name, ".")[0])
 		} else {
 			r.Name = types.StringValue("@")
 		}
 
-		if *record.Type == "MX" {
-			r.Priority = types.Int64Value(int64(*record.Priority))
+		if record.Type == "MX" {
+			r.Priority = types.Int64Value(*record.Priority)
 		} else {
 			r.Priority = types.Int64Null()
 		}

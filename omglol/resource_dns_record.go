@@ -79,30 +79,18 @@ func (r *dnsRecordResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			"name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The prefix to attach before the address. Enter `@` to use the apex.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			"data": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The data to enter into the record.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			"ttl": schema.Int64Attribute{
 				Required:            true,
 				MarkdownDescription: "The Time-To-Live (TTL) of the record.",
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.RequiresReplace(),
-				},
 			},
 			"priority": schema.Int64Attribute{
 				Optional:            true,
 				MarkdownDescription: "The priority of the record. Only applies to MX records.",
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.RequiresReplace(),
-				},
 			},
 			"fqdn": schema.StringAttribute{
 				Computed:            true,
@@ -155,10 +143,10 @@ func (r *dnsRecordResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.FQDN = types.StringValue(*record.Name + ".omg.lol")
-	plan.CreatedAt = types.StringValue(*record.CreatedAt)
-	plan.UpdatedAt = types.StringValue(*record.UpdatedAt)
-	plan.ID = types.Int64Value(*record.ID)
+	plan.FQDN = types.StringValue(record.Name + ".omg.lol")
+	plan.CreatedAt = types.StringValue(record.CreatedAt)
+	plan.UpdatedAt = types.StringValue(record.UpdatedAt)
+	plan.ID = types.Int64Value(record.ID)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -200,23 +188,23 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	// Overwrite record with refreshed state
-	state.ID = types.Int64Value(*record.ID)
-	state.Type = types.StringValue(*record.Type)
-	state.FQDN = types.StringValue(*record.Name + ".omg.lol")
-	state.Data = types.StringValue(*record.Data)
-	state.TTL = types.Int64Value(*record.TTL)
-	state.CreatedAt = types.StringValue(*record.CreatedAt)
-	state.UpdatedAt = types.StringValue(*record.UpdatedAt)
+	state.ID = types.Int64Value(record.ID)
+	state.Type = types.StringValue(record.Type)
+	state.FQDN = types.StringValue(record.Name + ".omg.lol")
+	state.Data = types.StringValue(record.Data)
+	state.TTL = types.Int64Value(record.TTL)
+	state.CreatedAt = types.StringValue(record.CreatedAt)
+	state.UpdatedAt = types.StringValue(record.UpdatedAt)
 
-	if strings.Contains(*record.Name, ".") {
-		state.Name = types.StringValue(strings.Split(*record.Name, ".")[0])
-		state.Address = types.StringValue(strings.Split(*record.Name, ".")[1])
+	if strings.Contains(record.Name, ".") {
+		state.Name = types.StringValue(strings.Split(record.Name, ".")[0])
+		state.Address = types.StringValue(strings.Split(record.Name, ".")[1])
 	} else {
-		state.Address = types.StringValue(*record.Name)
+		state.Address = types.StringValue(record.Name)
 		state.Name = types.StringValue("@")
 	}
 
-	if *record.Type == "MX" {
+	if record.Type == "MX" {
 		state.Priority = types.Int64Value(*record.Priority)
 	} else {
 		state.Priority = types.Int64Null()
@@ -232,7 +220,43 @@ func (r *dnsRecordResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *dnsRecordResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// Unused, replace is always forced
+	// Retrieve values from plan
+	var plan dnsRecordResourceModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Generate API request body from plan, and compute owner data
+	var entry *omglol.DNSEntry
+	if plan.Type.ValueString() == "MX" {
+		entry = omglol.NewDNSEntry(plan.Type.ValueString(), plan.Name.ValueString(), plan.Data.ValueString(), plan.TTL.ValueInt64(), plan.Priority.ValueInt64())
+	} else {
+		entry = omglol.NewDNSEntry(plan.Type.ValueString(), plan.Name.ValueString(), plan.Data.ValueString(), plan.TTL.ValueInt64())
+	}
+
+	// Update DNS Record
+	record, err := r.client.UpdateDNSRecord(plan.Address.ValueString(), *entry, plan.ID.ValueInt64())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Creating DNS Record",
+			"Could not create DNS record, unexpected error: "+err.Error(),
+		)
+		return
+	}
+
+	plan.FQDN = types.StringValue(record.Name + ".omg.lol")
+	plan.CreatedAt = types.StringValue(record.CreatedAt)
+	plan.UpdatedAt = types.StringValue(record.UpdatedAt)
+	plan.ID = types.Int64Value(record.ID)
+
+	// Set state to fully populated data
+	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -289,15 +313,15 @@ func (r *dnsRecordResource) ImportState(ctx context.Context, req resource.Import
 	}
 
 	// Overwrite record with refreshed state
-	state.Type = types.StringValue(*record.Type)
-	state.Name = types.StringValue(*record.Name)
-	state.FQDN = types.StringValue(*record.Name + ".omg.lol")
-	state.Data = types.StringValue(*record.Data)
-	state.TTL = types.Int64Value(*record.TTL)
-	state.CreatedAt = types.StringValue(*record.CreatedAt)
-	state.UpdatedAt = types.StringValue(*record.UpdatedAt)
+	state.Type = types.StringValue(record.Type)
+	state.Name = types.StringValue(record.Name)
+	state.FQDN = types.StringValue(record.Name + ".omg.lol")
+	state.Data = types.StringValue(record.Data)
+	state.TTL = types.Int64Value(record.TTL)
+	state.CreatedAt = types.StringValue(record.CreatedAt)
+	state.UpdatedAt = types.StringValue(record.UpdatedAt)
 
-	if *record.Type == "MX" {
+	if record.Type == "MX" {
 		state.Priority = types.Int64Value(*record.Priority)
 	} else {
 		state.Priority = types.Int64Null()
