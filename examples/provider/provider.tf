@@ -2,11 +2,12 @@ terraform {
   required_providers {
     omglol = {
       source = "ejstreet/omglol"
+      version = "<version>"
     }
   }
 }
 
 provider omglol {
   api_key = "<omg.lol API key>"
-  email = "<email address>"
+  user_email = "<email address>"
 }

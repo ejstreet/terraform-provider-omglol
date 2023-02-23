@@ -1,7 +1,7 @@
 resource omglol_dns_record apex {
-  type = "TXT"
+  type = "A"
   address = "example"
   name = "@"
-  data = "terraform=true"
+  data = "5.78.160.207"
   ttl = 300
 }

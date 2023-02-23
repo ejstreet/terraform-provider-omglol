@@ -26,6 +26,7 @@ data omglol_dns_records example {
 
 ### Read-Only
 
+- `id` (String) The ID of this resource.
 - `records` (Attributes List) A list of all the DNS records for the given address. (see [below for nested schema](#nestedatt--records))
 
 <a id="nestedatt--records"></a>
