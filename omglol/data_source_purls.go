@@ -119,6 +119,7 @@ func (d *pURLsDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			Name:    types.StringValue(purl.Name),
 			URL:     types.StringValue(purl.URL),
 			Counter: types.Int64Value(counter),
+			Listed:  types.BoolValue(purl.Listed),
 		}
 
 		state.PURLs = append(state.PURLs, p)

@@ -153,7 +153,8 @@ func (r *pURLResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	state.ID = types.StringValue(state.Address.ValueString() + "_" + state.Name.ValueString())
 	state.Name = types.StringValue(purl.Name)
 	state.URL = types.StringValue(purl.URL)
-	state.Counter = types.Int64Value(int64(*purl.Counter))
+	state.Counter = types.Int64Value(*purl.Counter)
+	state.Listed = types.BoolValue(purl.Listed)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -196,7 +197,8 @@ func (r *pURLResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	plan.Counter = types.Int64Value(int64(*purl.Counter))
+	plan.Listed = types.BoolValue(purl.Listed)
+	plan.Counter = types.Int64Value(*purl.Counter)
 	plan.UpdatedAt = types.StringValue(time.Now().Format(time.RFC850))
 	plan.ID = types.StringValue(plan.Address.ValueString() + "_" + plan.Name.ValueString())
 
@@ -263,7 +265,8 @@ func (r *pURLResource) ImportState(ctx context.Context, req resource.ImportState
 
 	state.Name = types.StringValue(purl.Name)
 	state.URL = types.StringValue(purl.URL)
-	state.Counter = types.Int64Value(int64(*purl.Counter))
+	state.Counter = types.Int64Value(*purl.Counter)
+	state.Listed = types.BoolValue(purl.Listed)
 
 	// Set refreshed state
 	diags := resp.State.Set(ctx, &state)
