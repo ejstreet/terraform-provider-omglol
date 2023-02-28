@@ -127,8 +127,8 @@ func (r *accountSettingsResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	// Overwrite settings with refreshed state
-	state.Communication = types.StringValue(settings.Communication)
-	state.DateFormat = types.StringValue(settings.DateFormat)
+	state.Communication = types.StringValue(*settings.Communication)
+	state.DateFormat = types.StringValue(*settings.DateFormat)
 	state.ID = types.StringValue("_")
 
 	// Set refreshed state
